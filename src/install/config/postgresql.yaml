@@ -4,7 +4,15 @@ title: 'PostgreSQL monitoring integration'
 metaDescription: 'Install the PostgreSQL integration'
 introFilePath: 'src/install/postgresql/intro.mdx'
 appInfo: 
-  - optionType: dropdown1
+  - optionType: environment # First dropdown for deployment type
+    label: ''
+    placeholder: 'Select your deployment type'
+    options: 
+      - value: 'self-hosted'
+        displayName: 'Self-hosted PostgreSQL'
+      - value: 'aurora'
+        displayName: 'Amazon Aurora PostgreSQL'
+  - optionType: dropdown1 # Second dropdown for environment
     label: ''
     placeholder: 'Select your environment'
     options: 
@@ -22,6 +30,12 @@ appInfo:
       - value: 'ecs'
         displayName: 'Amazon ECS'
         logo: 'amazonECS'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
   - optionType: deployment
     label: "Choose your install path"
     placeholder: "Choose one:"
@@ -33,6 +47,7 @@ appInfo:
       - value: "apt"
         displayName: "Install using Apt (Debian, Ubuntu)"
         recommendedGuided: true        
+        logo: 'linux'
       - value: "yum"
         logo: 'linux'      
         displayName: "Install using Yum (Amazon Linux, CentOS, RHEL)"
@@ -45,11 +60,38 @@ appInfo:
         displayName: "Install from tarball (Other Linux distros)"  
         recommendedGuided: true        
         logo: 'linux'       
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
 
 steps:
   - filePath: 'src/install/postgresql/appInfo.mdx'
+  # Aurora specific steps
+  - filePath: 'src/install/postgresql/aurora/requirements.mdx'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'aurora'
+  - filePath: 'src/install/postgresql/aurora/setup.mdx'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'aurora'
+  # Self-hosted steps (existing flow)
   - filePath: 'src/install/postgresql/default-requirements.mdx'
     overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
       - filePath: 'src/install/postgresql/requirements-k8s.mdx'
         selectedOptions: 
           - optionType: dropdown1
@@ -61,72 +103,139 @@ steps:
             options: 
               - value: 'ecs'
   - filePath: 'src/install/postgresql/install-infra.mdx'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+  # Windows MSI Installation
+  - filePath: "src/install/postgresql/windows/install-msi.mdx"
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'msi'
+  
+  # Linux APT Installation
   - filePath: "src/install/postgresql/linux/install-apt.mdx"
-    overrides: 
-        - filePath: "src/install/postgresql/linux/install-apt.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "apt"
-        - filePath: "src/install/postgresql/linux/install-tarball.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "tar"
-        - filePath: "src/install/postgresql/linux/install-yum.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "yum"
-        - filePath: "src/install/postgresql/linux/install-zypper.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "zypper"
-        - filePath: "src/install/postgresql/windows/install-msi.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "msi"  
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'apt'
+              
+  # Linux YUM Installation
+  - filePath: "src/install/postgresql/linux/install-yum.mdx"
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'yum'
+              
+  # Linux Zypper Installation
+  - filePath: "src/install/postgresql/linux/install-zypper.mdx"
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'zypper'
+              
+  # Linux Tarball Installation
+  - filePath: "src/install/postgresql/linux/install-tarball.mdx"
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'tar'
   - filePath: 'src/install/postgresql/default-install-linux.mdx'
     overrides: 
-        - filePath: 'src/install/postgresql/linux/install-linux.mdx'
-          selectedOptions: 
-            - optionType: dropdown1
-              options: 
-                - value: 'linux'
-        - filePath: 'src/install/postgresql/windows/install-windows.mdx'
-          selectedOptions: 
-            - optionType: dropdown1
-              options: 
-                - value: 'windows'
-        - filePath: 'src/install/postgresql/install-k8s.mdx'
-          selectedOptions: 
-            - optionType: dropdown1
-              options: 
-                - value: 'k8s'
-        - filePath: 'src/install/postgresql/install-amazonECS.mdx'
-          selectedOptions: 
-            - optionType: dropdown1
-              options: 
-                - value: 'ecs'
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+      - filePath: 'src/install/postgresql/linux/install-linux.mdx'
+        selectedOptions: 
+          - optionType: dropdown1
+            options: 
+              - value: 'linux'
+      - filePath: 'src/install/postgresql/windows/install-windows.mdx'
+        selectedOptions: 
+          - optionType: dropdown1
+            options: 
+              - value: 'windows'
+      - filePath: 'src/install/postgresql/install-k8s.mdx'
+        selectedOptions: 
+          - optionType: dropdown1
+            options: 
+              - value: 'k8s'
+      - filePath: 'src/install/postgresql/install-amazonECS.mdx'
+        selectedOptions: 
+          - optionType: dropdown1
+            options: 
+              - value: 'ecs'
   - filePath: 'src/install/postgresql/create-user.mdx'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
   - filePath: 'src/install/postgresql/query-monitoring.mdx'
     overrides: 
-        - filePath: "src/install/postgresql/linux/install-apt-query-monitoring.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "apt"
-        - filePath: "src/install/postgresql/linux/install-yum-query-monitoring.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "yum"
-        - filePath: "src/install/postgresql/windows/install-windows-query-monitoring.mdx"
-          selectedOptions: 
-            - optionType: deployment
-              options: 
-                - value: "msi"  
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'apt'
+        filePath: "src/install/postgresql/linux/install-apt-query-monitoring.mdx"
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'yum'
+        filePath: "src/install/postgresql/linux/install-yum-query-monitoring.mdx"
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
+          - optionType: deployment
+            options:
+              - value: 'msi'
+        filePath: "src/install/postgresql/windows/install-windows-query-monitoring.mdx"
   - filePath: 'src/install/postgresql/find-data.mdx'
+    overrides:
+      - isConditionalStep: true
+        selectedOptions:
+          - optionType: environment
+            options:
+              - value: 'self-hosted'
 whatsNextFilePath: 'src/install/postgresql/whatsNext.mdx'
